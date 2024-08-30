@@ -8,7 +8,7 @@ export default async function Home() {
   const hello = await api.post.hello({ text: "from tRPC" });
   const session = await getServerAuthSession();
 
-  void api.post.getLatest.prefetch();
+  void (await api.post.getLatest.prefetch());
 
   return (
     <HydrateClient>
@@ -58,7 +58,11 @@ export default async function Home() {
               </Link>
             </div>
           </div>
-
+          {session && (
+            <Link className="text-white" href={`/${session.user?.id}`}>
+              マイページ
+            </Link>
+          )}
           {session?.user && <LatestPost />}
         </div>
       </main>
