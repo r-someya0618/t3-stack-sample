@@ -12,6 +12,7 @@ import {
   type TweetContentSchema,
 } from "@/validations/tweet";
 import { useParams } from "next/navigation";
+import { TweetList } from "@/app/_components/TweetList";
 
 export default function UserIdIndex() {
   const { data: session } = useSession();
@@ -31,6 +32,9 @@ export default function UserIdIndex() {
       userId,
     });
   const tweetAddMutation = api.tweet.add.useMutation();
+  const { data: tweets = [], isLoading: isLoadingTweets } =
+    api.tweet.getAllByUserId.useQuery({ userId });
+  const utils = api.useUtils();
 
   if (isLoadingUser)
     return (
@@ -45,7 +49,17 @@ export default function UserIdIndex() {
 
   function onSubmit({ content }: TweetContentSchema) {
     if (tweetAddMutation.isPending) return;
-    tweetAddMutation.mutate({ content });
+    tweetAddMutation.mutate(
+      { content },
+      {
+        onSuccess(data) {
+          utils.tweet.getAllByUserId.setData({ userId: data.userId }, [
+            data,
+            ...tweets,
+          ]);
+        },
+      },
+    );
     reset();
   }
 
@@ -84,6 +98,10 @@ export default function UserIdIndex() {
             </button>
           </form>
         )}
+        <div>
+          <h2 className="mb-2 font-bold">ツイート</h2>
+          <TweetList tweets={tweets} isLoading={isLoadingTweets} />
+        </div>
       </div>
     </DefaultLayout>
   );
